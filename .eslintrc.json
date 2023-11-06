@@ -1,0 +1,7 @@
+{
+  "root": true,
+  "parserOptions": {
+    "project": "./tsconfig.eslint.json",
+    "tsconfigRootDir": "frontend"
+  }
+}
