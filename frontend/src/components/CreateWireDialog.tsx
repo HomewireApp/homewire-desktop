@@ -1,14 +1,14 @@
 import { createForm } from '@felte/solid';
 import type { Accessor } from 'solid-js';
-import { createEffect } from 'solid-js';
+import { createEffect, useContext } from 'solid-js';
 import { Portal } from 'solid-js/web';
-import { CreateNewWire } from '../../wailsjs/go/app/App';
-import type { wire } from '../../wailsjs/go/models';
+import type { app } from '../../wailsjs/go/models';
+import { Context } from '../homewire';
 
 export type CreateWireDialogProps = {
   open: Accessor<boolean>;
   onOpen?: () => void;
-  onSuccess?: (wire: wire.WireInfo) => void;
+  onSuccess?: (wire: app.WireInfo) => void;
   onCancel?: () => void;
 };
 
@@ -18,11 +18,12 @@ export type CreateWireInputs = {
 
 export function CreateWireDialog(props: CreateWireDialogProps) {
   let ref: HTMLDialogElement;
+  const homewire = useContext(Context);
 
   const { form, isSubmitting, reset } = createForm<CreateWireInputs>({
     onSubmit: async data => {
       try {
-        const wire = await CreateNewWire(data.name);
+        const wire = await homewire.createWire(data.name);
 
         ref.close();
 

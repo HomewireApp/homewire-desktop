@@ -5,8 +5,9 @@ import (
 	"embed"
 
 	"github.com/HomewireApp/homewire"
-	"github.com/HomewireApp/homewire-ui/internal/app"
-	"github.com/HomewireApp/homewire-ui/internal/logger"
+	"github.com/HomewireApp/homewire-desktop/internal/app"
+	"github.com/HomewireApp/homewire/logger"
+	homewire_options "github.com/HomewireApp/homewire/options"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
@@ -17,15 +18,21 @@ import (
 var assets embed.FS
 
 func main() {
-	logger.Init()
+	hwOpts, err := homewire_options.Default()
+	if err != nil {
+		panic(err)
+	}
 
-	hw, err := homewire.Open(nil)
+	hwLogger := logger.DefaultConsoleConfig().WithLevel(logger.LevelDebug).CreateLogger("homewire")
+	appLogger := logger.DefaultConsoleConfig().WithLevel(logger.LevelInfo).CreateLogger("homewire-desktop")
+
+	hw, err := homewire.InitWithOptions(*hwOpts.WithLogger(hwLogger))
 	if err != nil {
 		panic(err)
 	}
 
 	// Create an instance of the a structure
-	a := app.New(context.Background(), hw)
+	a := app.New(context.Background(), hw, appLogger)
 
 	// Create application with options
 	err = wails.Run(&options.App{
@@ -46,7 +53,7 @@ func main() {
 			&app.WireInfo{},
 		},
 		Menu:   a.ApplicationMenu(),
-		Logger: logger.NewBridge(),
+		Logger: app.NewLogBridge(appLogger),
 	})
 
 	if err != nil {

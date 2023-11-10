@@ -2,11 +2,9 @@ package app
 
 import (
 	"sort"
-
-	"github.com/HomewireApp/homewire/wire"
 )
 
-type WireInfoSorter []wire.Wire
+type WireInfoSorter []WireInfo
 
 func (s WireInfoSorter) Len() int {
 	return len(s)
@@ -22,6 +20,6 @@ func (s WireInfoSorter) Swap(i, j int) {
 }
 
 // Sorts a list of wires. Mutates the original array
-func SortWireList(wires []wire.Wire) {
+func SortWireList(wires []WireInfo) {
 	sort.Sort(WireInfoSorter(wires))
 }

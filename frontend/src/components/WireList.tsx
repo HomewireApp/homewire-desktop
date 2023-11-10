@@ -1,17 +1,18 @@
-import { For, Show, Suspense, createResource, createSignal, onCleanup, onMount } from 'solid-js';
+import type { JSX } from 'solid-js';
+import { For, Show, Suspense, createSignal, useContext } from 'solid-js';
 import { CreateWireDialog } from './CreateWireDialog';
-import * as Homewire from '../homewire';
-import type { wire } from '../../wailsjs/go/models';
+import type { app } from '../../wailsjs/go/models';
+import { Context } from '../homewire';
 
 export type WireListProps = {
   class?: string;
 };
 
 type WireListItemProps = {
-  wire: wire.WireInfo;
+  wire: app.WireInfo;
   disabled?: boolean;
   current?: boolean;
-  onClick?: (wire: wire.WireInfo) => void | Promise<void>;
+  onClick?: (wire: app.WireInfo) => void | Promise<void>;
 };
 
 const BadgeContentByStatus = {
@@ -33,10 +34,14 @@ const BadgeContentByStatus = {
   },
 };
 
-function NoWiresFoundMessage() {
+function NoWiresFoundMessage(props: { children?: JSX.Element | JSX.Element[] }) {
   return (
-    <li class="absolute inset-x-0 inset-y-24 flex items-center justify-center -z-1">
-      <div class="menu-title text-base text-lg">No Wires found</div>
+    <li>
+      <div class="menu-title font-normal text-base text-sm mt-4">
+        <Show when={props.children} fallback="No wires found">
+          {props.children}
+        </Show>
+      </div>
     </li>
   );
 }
@@ -50,8 +55,8 @@ function LoadingState() {
 }
 
 function WireListItem(props: WireListItemProps) {
-  const badgeContent = BadgeContentByStatus[props.wire.status] ?? {
-    label: props.wire.status,
+  const badgeContent = BadgeContentByStatus[props.wire.connectionStatus] ?? {
+    label: props.wire.connectionStatus,
     color: '',
   };
 
@@ -80,86 +85,39 @@ function WireListItem(props: WireListItemProps) {
 }
 
 export function WireList(props: WireListProps) {
+  const homewire = useContext(Context);
+
   const [isCreateDialogOpen, setCreateDialogOpen] = createSignal<boolean>();
-  const [wires, { mutate }] = createResource(Homewire.listWires);
-  const [refreshTimer, setRefreshTimer] = createSignal<any>(null);
-  const [isJoiningWire, setJoiningWire] = createSignal<boolean>(false);
-
-  function startRefreshTimer() {
-    const newTimeout = setTimeout(async () => {
-      await refreshList();
-    }, 5000);
-
-    setRefreshTimer(newTimeout);
-  }
-
-  function stopRefreshTimer() {
-    clearTimeout(refreshTimer());
-  }
-
-  async function refreshList() {
-    clearTimeout(refreshTimer());
-
-    try {
-      const newWires = await Homewire.listWires();
-      mutate(newWires);
-    } catch (err) {
-      console.error('Failed to fetch wires', err);
-    }
-
-    startRefreshTimer();
-  }
 
   function onCreateDialogOpened() {
     setCreateDialogOpen(true);
-    stopRefreshTimer();
   }
 
   function onCreateCancelled() {
     setCreateDialogOpen(false);
-    startRefreshTimer();
   }
 
   async function onCreateSuccessful() {
     setCreateDialogOpen(false);
-    await refreshList();
   }
 
-  async function onWireClicked(wire: wire.WireInfo) {
-    let actualWire = wire;
-
-    if (wire.status !== 'joined') {
-      setJoiningWire(true);
-      stopRefreshTimer();
-
+  async function onWireClicked(wire: app.WireInfo) {
+    if (wire.joinStatus !== 'joined') {
       try {
-        const newWires = await Homewire.joinWire(wire.id);
-        actualWire = newWires.find(w => w.id === wire.id);
-        mutate(newWires);
+        // TODO IMPLEMENT THIS
       } catch (err) {
         console.error('Failed to join wire', wire.id, 'due to', err);
-        return;
-      } finally {
-        setJoiningWire(false);
-        startRefreshTimer();
       }
     }
-
-    Homewire.setCurrentWire(actualWire);
-    await refreshList();
   }
-
-  onMount(() => startRefreshTimer());
-
-  onCleanup(() => stopRefreshTimer());
 
   return (
     <div class={`flex flex-col ${props.class}`}>
       <Suspense fallback={<LoadingState />}>
-        <ul class="menu flex-1 p-4 bg-base-200 relative">
+        <ul class="menu flex-1 p-4 bg-base-200">
           <li>
             <div class="menu-title flex flex-row items-center">
-              <h2 class="flex-1">Wire List</h2>
+              <h2 class="flex-1">My Wires</h2>
               <button class="btn btn-xs btn-primary" onClick={() => setCreateDialogOpen(true)}>
                 Create New
               </button>
@@ -173,16 +131,30 @@ export function WireList(props: WireListProps) {
             />
           </li>
 
-          <For each={wires()} fallback={<NoWiresFoundMessage />}>
+          <For
+            each={homewire.joinedWires()}
+            fallback={<NoWiresFoundMessage>You have not joined any Wires</NoWiresFoundMessage>}>
             {wire => (
               <WireListItem
                 wire={wire}
                 onClick={onWireClicked}
-                disabled={isJoiningWire()}
-                current={wire.id === Homewire.currentWire()?.id}
+                disabled={wire.joinStatus === 'joining'}
+                current={wire.id === homewire.currentWire()?.id}
               />
             )}
           </For>
+
+          <Show when={homewire.nearbyWires().length > 0}>
+            <li class="border-top">
+              <div class="menu-title">
+                <div class="divider my-2" />
+                Nearby Wires
+              </div>
+            </li>
+            <For each={homewire.nearbyWires()}>
+              {wire => <WireListItem wire={wire} onClick={onWireClicked} />}
+            </For>
+          </Show>
         </ul>
       </Suspense>
     </div>

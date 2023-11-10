@@ -8,3 +8,12 @@ type WireInfo struct {
 	JoinStatus       wire.JoinStatus       `json:"joinStatus"`
 	ConnectionStatus wire.ConnectionStatus `json:"connectionStatus"`
 }
+
+func InfoForWire(w *wire.Wire) *WireInfo {
+	return &WireInfo{
+		Id:               w.Id,
+		Name:             w.Name,
+		JoinStatus:       w.JoinStatus,
+		ConnectionStatus: w.ConnectionStatus,
+	}
+}
