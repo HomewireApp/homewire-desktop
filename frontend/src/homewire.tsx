@@ -5,6 +5,16 @@ import type { app } from '../wailsjs/go/models';
 import { CreateNewWire, ListWires } from '../wailsjs/go/app/App';
 import { EventsOff, EventsOn } from '../wailsjs/runtime/runtime';
 
+const StorageKeys = {
+  currentWireId: 'homewire:current',
+};
+
+export type OtpCodeResult = {
+  code: string;
+  ttl: number;
+  expiresAt: Date;
+};
+
 function noop(..._args: any[]): any {}
 
 export type HomewireContext = {
@@ -13,6 +23,7 @@ export type HomewireContext = {
   currentWire: Accessor<app.WireInfo | null>;
   createWire: (name: string) => Promise<app.WireInfo>;
   selectWire: (wire: app.WireInfo) => void;
+  getOtpCode: (wire: app.WireInfo) => Promise<OtpCodeResult>;
 };
 
 export const Context = createContext<HomewireContext>({
@@ -21,6 +32,7 @@ export const Context = createContext<HomewireContext>({
   currentWire: () => null,
   createWire: noop,
   selectWire: noop,
+  getOtpCode: noop,
 });
 
 function sortWiresByName(a: app.WireInfo, b: app.WireInfo) {
@@ -50,6 +62,12 @@ export function HomewireProvider(props: { children?: JSX.Element | JSX.Element[]
     try {
       const wires = await ListWires();
       setWires(wires);
+
+      const currentId = localStorage.getItem(StorageKeys.currentWireId) ?? '';
+      const selectedWire = wires.find(w => w.id === currentId);
+      if (selectWire) {
+        setCurrentWire(selectedWire);
+      }
     } catch (err) {
       console.error('Failed to fetch wires', err);
     }
@@ -77,6 +95,7 @@ export function HomewireProvider(props: { children?: JSX.Element | JSX.Element[]
   function selectWire(wire: app.WireInfo) {
     if (wire.joinStatus === 'joined') {
       setCurrentWire(wire);
+      localStorage.setItem('homewire:current', wire.id);
     }
   }
 
@@ -86,12 +105,22 @@ export function HomewireProvider(props: { children?: JSX.Element | JSX.Element[]
     return wire;
   }
 
+  async function getOtpCode(_wire: app.WireInfo): Promise<OtpCodeResult> {
+    await new Promise(resolve => setTimeout(resolve, 50));
+    return {
+      code: '123123',
+      expiresAt: new Date(Date.now() + 113_000),
+      ttl: 120_000,
+    };
+  }
+
   const value: HomewireContext = {
     currentWire,
     joinedWires,
     nearbyWires,
     selectWire,
     createWire,
+    getOtpCode,
   };
 
   return <Context.Provider value={value}>{props.children}</Context.Provider>;

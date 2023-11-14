@@ -89,6 +89,22 @@ export function WireList(props: WireListProps) {
 
   const [isCreateDialogOpen, setCreateDialogOpen] = createSignal<boolean>();
 
+  function onWireClicked(wire: app.WireInfo) {
+    if (wire.joinStatus === 'not-joined') {
+      try {
+        // TODO IMPLEMENT THIS
+      } catch (err) {
+        console.error('Failed to join wire', wire.id, 'due to', err);
+      }
+    } else if (
+      wire.joinStatus === 'joined' &&
+      wire.connectionStatus === 'connected' &&
+      wire.id !== homewire.currentWire()?.id
+    ) {
+      homewire.selectWire(wire);
+    }
+  }
+
   function onCreateDialogOpened() {
     setCreateDialogOpen(true);
   }
@@ -99,16 +115,6 @@ export function WireList(props: WireListProps) {
 
   async function onCreateSuccessful() {
     setCreateDialogOpen(false);
-  }
-
-  async function onWireClicked(wire: app.WireInfo) {
-    if (wire.joinStatus !== 'joined') {
-      try {
-        // TODO IMPLEMENT THIS
-      } catch (err) {
-        console.error('Failed to join wire', wire.id, 'due to', err);
-      }
-    }
   }
 
   return (
