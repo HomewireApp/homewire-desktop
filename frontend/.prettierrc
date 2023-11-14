@@ -7,5 +7,8 @@
   "semi": true,
   "singleQuote": true,
   "bracketSameLine": true,
-  "useTabs": false
+  "useTabs": false,
+  "plugins": ["prettier-plugin-svelte"],
+  "pluginSearchDirs": ["."],
+  "overrides": [{ "files": "*.svelte", "options": { "parser": "svelte" } }]
 }

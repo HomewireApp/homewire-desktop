@@ -7,6 +7,8 @@ export function ApplicationMenu():Promise<menu.Menu>;
 
 export function CreateNewWire(arg1:string):Promise<app.WireInfo>;
 
+export function GetWireOtp(arg1:string):Promise<app.Otp>;
+
 export function Greet(arg1:string):Promise<string>;
 
 export function ListWires():Promise<Array<app.WireInfo>>;

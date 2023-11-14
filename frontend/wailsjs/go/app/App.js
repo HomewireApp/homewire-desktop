@@ -10,6 +10,10 @@ export function CreateNewWire(arg1) {
   return window['go']['app']['App']['CreateNewWire'](arg1);
 }
 
+export function GetWireOtp(arg1) {
+  return window['go']['app']['App']['GetWireOtp'](arg1);
+}
+
 export function Greet(arg1) {
   return window['go']['app']['App']['Greet'](arg1);
 }

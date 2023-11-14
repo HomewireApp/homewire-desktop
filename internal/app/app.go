@@ -107,6 +107,34 @@ func (a *App) ListWires() []WireInfo {
 	return result
 }
 
+func (a *App) GetWireOtp(wireId string) (*Otp, error) {
+	a.mutWires.RLock()
+	defer a.mutWires.RUnlock()
+
+	var foundWire *wire.Wire
+	for _, w := range a.wires {
+		if w.Id == wireId {
+			foundWire = w
+			break
+		}
+	}
+
+	if foundWire == nil {
+		return nil, fmt.Errorf("no wire found with ID %s", wireId)
+	}
+
+	otp, err := foundWire.GenerateOtp()
+	if err != nil {
+		return nil, err
+	}
+
+	return &Otp{
+		Code:      otp.Code,
+		Ttl:       otp.Ttl,
+		ExpiresAt: otp.ExpiresAt,
+	}, nil
+}
+
 // Greet returns a greeting for the given name
 func (a *App) Greet(name string) string {
 	return fmt.Sprintf("Hello %s, It's show time!", name)
