@@ -40,6 +40,7 @@ export namespace app {
 	    name: string;
 	    joinStatus: string;
 	    connectionStatus: string;
+	    providers: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new WireInfo(source);
@@ -51,6 +52,7 @@ export namespace app {
 	        this.name = source["name"];
 	        this.joinStatus = source["joinStatus"];
 	        this.connectionStatus = source["connectionStatus"];
+	        this.providers = source["providers"];
 	    }
 	}
 

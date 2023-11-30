@@ -11,6 +11,7 @@ type WireInfo struct {
 	Name             string                `json:"name"`
 	JoinStatus       wire.JoinStatus       `json:"joinStatus"`
 	ConnectionStatus wire.ConnectionStatus `json:"connectionStatus"`
+	Providers        int                   `json:"providers"`
 }
 
 type Otp struct {
@@ -25,5 +26,6 @@ func InfoForWire(w *wire.Wire) *WireInfo {
 		Name:             w.Name,
 		JoinStatus:       w.JoinStatus,
 		ConnectionStatus: w.ConnectionStatus,
+		Providers:        len(w.KnownProviderPeers),
 	}
 }

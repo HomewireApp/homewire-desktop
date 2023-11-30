@@ -21,6 +21,7 @@ import localStorageStore from './localStorageStore';
  *  name: string;
  *  joinStatus: JoinStatus;
  *  connectionStatus: ConnectionStatus;
+ *  providers: number;
  *  joined: boolean;
  * }} WireInfo
  */
@@ -80,6 +81,7 @@ function mapAppWireToWire(appWire) {
     name: appWire.name,
     joinStatus,
     connectionStatus,
+    providers: appWire.providers,
     joined: joinStatus !== 'not-joined',
   };
 }
